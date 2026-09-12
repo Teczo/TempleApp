@@ -96,23 +96,49 @@ There is no "forgot password" page. If she forgets it, run the command again.
 
 ## Step 4 — Put the app on the internet
 
-1. Push this folder to a GitHub repository.
+You only need **two** settings to deploy. The third one comes later.
+
+1. Push this code to a GitHub repository, on the `main` branch.
 2. Go to https://vercel.com and sign in with GitHub.
 3. Click **Add New**, then **Project**. Choose your repository.
-4. Before you click Deploy, open **Environment Variables** and add these three:
+4. Open **Environment Variables** and add these two:
 
    | Name | Value |
    |---|---|
    | `MONGODB_URI` | your database address from Step 1 |
-   | `JWT_SECRET` | any long random line of letters and numbers |
-   | `NEXT_PUBLIC_BASE_URL` | the address Vercel gives you, for example `https://your-app.vercel.app` |
+   | `JWT_SECRET` | any long random line of letters and numbers, about 40 characters |
 
-5. Click **Deploy** and wait.
-6. Open `https://your-app.vercel.app/join` on your phone and try it.
+   Leave everything else as it is. Vercel finds the right settings on its own.
+5. Click **Deploy** and wait about two minutes.
+6. Vercel now shows you the address, for example `https://temple-app.vercel.app`.
+7. Open `https://your-address.vercel.app/join` on your phone and try it.
+
+### About `NEXT_PUBLIC_BASE_URL`
+
+You cannot know this value before the first deploy. Vercel decides the
+address for you. So do it in this order:
+
+1. Deploy first, with only the two settings above.
+2. Copy the address Vercel gives you.
+3. Go to **Settings**, then **Environment Variables**, and add
+   `NEXT_PUBLIC_BASE_URL` with that address. Do not put a `/` at the end.
+4. Go to **Deployments** and click **Redeploy** on the newest one.
+
+Nothing in the app uses this setting yet. It is only needed in Phase 5,
+for the join link and the QR code. So you can skip it for now.
+
+### If Vercel deploys nothing
+
+Vercel only puts the `main` branch on your live address. If your code sits
+on another branch, the live address stays empty. Check this:
+
+1. In Vercel, open **Deployments**. See which branch each one came from.
+2. In **Settings**, then **Git**, check that **Production Branch** says `main`.
+3. In GitHub, open your repository and make sure the code is on `main`.
 
 ---
 
-## The two pages
+## The pages
 
 | Page | Address | Who uses it |
 |---|---|---|
