@@ -12,6 +12,12 @@ export interface SessionUser {
   name: string;
 }
 
+/** True when JWT_SECRET is filled in. Lets a route give a plain message
+ *  instead of failing with no explanation. */
+export function hasSessionSecret(): boolean {
+  return Boolean(process.env.JWT_SECRET);
+}
+
 function secretKey(): Uint8Array {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
