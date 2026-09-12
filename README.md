@@ -3,9 +3,10 @@
 A small web app for the Thiruppugazh class.
 People join through a link. The organiser sees the list of people who joined.
 
-This is **Phase 4**. It has the join form with country and city boxes,
-a login, an attendee list grouped by city, and a one-time command that
-brings the old spreadsheet of names into the app.
+This is **Phase 5**. It has the join form, a login, the attendee list
+grouped by city, the one-time command that brings in the old spreadsheet,
+and the organiser's tools: search, edit, remove, copy numbers, the Excel
+file, the join link and the picture code.
 
 ---
 
@@ -184,8 +185,9 @@ address for you. So do it in this order:
    `NEXT_PUBLIC_BASE_URL` with that address. Do not put a `/` at the end.
 4. Go to **Deployments** and click **Redeploy** on the newest one.
 
-Nothing in the app uses this setting yet. It is only needed in Phase 5,
-for the join link and the QR code. So you can skip it for now.
+If you skip this, the app still works. It works the address out from the
+browser. But if you later add your own web address, fill this in so the
+join link and the picture code always point at the right place.
 
 ### If Vercel deploys nothing
 
@@ -206,11 +208,51 @@ on another branch, the live address stays empty. Check this:
 | Log in | `/login` | The organiser. |
 | City list | `/dashboard` | The organiser, after logging in. |
 | One city | `/dashboard/city/...` | Tap a city name to open it. |
+| One person | `/dashboard/person/...` | Tap a person's name to edit them. |
 | New locations | `/dashboard/locations` | Tap the yellow banner to open it. |
+| Settings | `/dashboard/settings` | Tap **Settings** at the top right. |
 
 If she opens `/dashboard` without logging in, the app sends her to `/login`.
 Once she logs in, she stays logged in on that phone for 30 days.
-The **Log out** button is at the top of the attendee list.
+The **Log out** button is at the top right, and also on the Settings page.
+
+---
+
+## What the organiser can do
+
+**Find one person.** Type a name or part of a phone number in the box at the
+top of the attendee list. Tap **Find**. Tap **Clear** to go back.
+
+**Change someone's details.** Tap a city, then tap the person's name.
+Change the name, country, phone number or city. Tap **Save changes**.
+
+**Take someone off the list.** Open the person, tap **Take off the list**,
+then tap **Yes, take off**. Nothing is deleted. They stop showing in the
+counts and the lists. To put them back, open their link again and save.
+
+**Copy all the numbers of one city.** Open the city, tap **Copy all numbers**.
+The numbers go on the clipboard, separated by commas. Paste them straight
+into WhatsApp or a text message.
+
+**Share the join link.** Open **Settings**. Tap **Copy link** and paste it
+anywhere. Or tap **Download the picture** to save the square picture code.
+People point their phone camera at it and the form opens.
+
+**Save the whole list.** Open **Settings**, tap **Download attendee list**.
+You get a file that opens in Excel, with name, phone, city, region, country
+and the date they joined.
+
+---
+
+## What stops junk sign-ups
+
+You do not need to do anything. These work on their own.
+
+1. A hidden box on the form that only automatic fillers type in.
+   If it is filled in, nothing is saved.
+2. The same internet connection can only send the form 5 times an hour.
+3. If somebody joins twice with the same phone number, the app keeps one
+   person and refreshes their details. They see "You are already registered."
 
 ---
 
@@ -232,11 +274,19 @@ The app cannot reach the database. Check `MONGODB_URI`.
 
 **The import says a name has no number.**
 The old spreadsheet had something the app could not read in that box.
-The person is still saved. Open their city, tap their name, and type the
-number in. (Editing a person comes in Phase 5.)
+The person is still saved. Open their city, tap their name, type the
+number in, and tap Save changes.
 
 **The city box shows no suggestions.**
 Run `npm run seed:cities`. The locations have not been added yet.
+
+**The Copy button says it could not copy.**
+Some older phone browsers do not allow it. Press and hold on the numbers
+on the screen, then choose Copy.
+
+**The Excel file will not download on my phone.**
+Some phone browsers block a download from a page. Try it on a computer,
+or use your phone's other browser.
 
 **A city name looks wrong in the list.**
 Open the yellow banner on the attendee list. Then either add the name, or
@@ -259,15 +309,23 @@ app/dashboard/locations      new locations to check
 app/api/attendees/route.ts   saves a new person
 app/api/auth/login/route.ts  checks the password and starts the session
 app/api/auth/logout/route.ts ends the session
+app/api/attendees/[id]       changes or removes one person
 app/api/cities/route.ts      the city names for the join box
 app/api/cities/[id]/route.ts adds a location, or joins two together
+app/api/export/route.ts      makes the Excel file
+app/api/qr/route.ts          makes the picture code
+app/dashboard/person/[id]    change or remove one person
+app/dashboard/settings       the link, the picture code and the Excel file
 middleware.ts                sends people to /login if they are not logged in
 lib/db/client.ts             connects to the database
 lib/db/attendees.ts          reads and writes attendees
 lib/db/users.ts              reads the organiser login
 lib/db/cities.ts             reads and writes locations
+lib/db/attendee-list.ts      search, and the rows for the Excel file
+lib/db/rate-limit.ts         counts join tries so nobody can flood the form
 lib/utils/countries.ts       the country list and dialling codes
 lib/utils/phone.ts           turns a typed number into +61... form
+lib/utils/base-url.ts        works out the join link
 lib/auth/session.ts          makes and checks the login cookie
 scripts/seed-user.ts         creates or updates the organiser login
 scripts/seed-cities.ts       adds the starting locations
@@ -279,5 +337,9 @@ lib/utils/import-phone.ts    cleans the old phone numbers
 components/JoinForm.tsx      the form boxes and the Join button
 components/LoginForm.tsx     the email and password boxes
 components/CityBox.tsx       the city box that suggests as you type
+components/PersonForm.tsx    the edit boxes for one person
+components/RemovePerson.tsx  the two-tap "take off the list" button
+components/CopyButton.tsx    copies text to the clipboard
+components/SearchResults.tsx the people found by a search
 data/attendees.csv           the old list of names
 ```

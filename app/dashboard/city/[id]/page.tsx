@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import CopyButton from "@/components/CopyButton";
 import { listAttendeesByCity } from "@/lib/db/attendees";
 import { findCityById } from "@/lib/db/cities";
 
@@ -18,6 +19,7 @@ export default async function CityPage({ params }: Props) {
   if (!city) notFound();
 
   const people = await listAttendeesByCity(id).catch(() => []);
+  const numbers = people.map((person) => person.phone).filter(Boolean).join(", ");
 
   return (
     <main className="mx-auto max-w-md px-5 py-8">
@@ -35,14 +37,28 @@ export default async function CityPage({ params }: Props) {
         <p className="mt-5 text-base text-stone-600">Nobody is in this city yet.</p>
       )}
 
+      {people.length > 0 && (
+        <CopyButton
+          text={numbers}
+          label="Copy all numbers"
+          doneLabel="All numbers copied."
+          emptyMessage="Nobody in this city has a phone number yet."
+          className="mt-4"
+        />
+      )}
+
       <ul className="mt-5 space-y-2">
         {people.map((person) => (
-          <li
-            key={person._id.toString()}
-            className="rounded-lg bg-white px-4 py-3 shadow-sm"
-          >
-            <p className="text-base font-medium">{person.name}</p>
-            <p className="text-sm text-stone-600">{person.phone || "No phone number"}</p>
+          <li key={person._id.toString()}>
+            <Link
+              href={`/dashboard/person/${person._id.toString()}`}
+              className="block rounded-lg bg-white px-4 py-3 shadow-sm"
+            >
+              <p className="text-base font-medium">{person.name}</p>
+              <p className="text-sm text-stone-600">
+                {person.phone || "No phone number"}
+              </p>
+            </Link>
           </li>
         ))}
       </ul>

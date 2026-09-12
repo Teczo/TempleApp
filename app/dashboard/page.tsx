@@ -1,23 +1,33 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
+import SearchResults from "@/components/SearchResults";
 import { countActiveAttendees, groupAttendeesByCity, type CityGroup } from "@/lib/db/attendees";
+import { searchAttendees, type AttendeeRow } from "@/lib/db/attendee-list";
 import { countPendingCities } from "@/lib/db/cities";
 
 export const metadata: Metadata = { title: "Attendees" };
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
+interface Props {
+  searchParams: Promise<{ q?: string }>;
+}
+
+export default async function DashboardPage({ searchParams }: Props) {
+  const query = ((await searchParams).q ?? "").trim();
+
   let total = 0;
   let groups: CityGroup[] = [];
   let pending = 0;
+  let found: AttendeeRow[] = [];
   let failed = false;
 
   try {
-    [total, groups, pending] = await Promise.all([
+    [total, groups, pending, found] = await Promise.all([
       countActiveAttendees(),
       groupAttendeesByCity(),
       countPendingCities(),
+      query ? searchAttendees(query) : Promise.resolve([]),
     ]);
   } catch {
     failed = true;
@@ -29,8 +39,33 @@ export default async function DashboardPage() {
         <h1 className="text-2xl font-semibold">
           {failed ? "Attendees" : `${total} ${total === 1 ? "attendee" : "attendees"}`}
         </h1>
-        <LogoutButton />
+        <div className="flex shrink-0 items-baseline gap-3">
+          <Link
+            href="/dashboard/settings"
+            className="text-sm font-medium text-stone-600 underline"
+          >
+            Settings
+          </Link>
+          <LogoutButton />
+        </div>
       </div>
+
+      <form action="/dashboard" method="get" className="mt-4 flex gap-2">
+        <input
+          type="search"
+          name="q"
+          defaultValue={query}
+          placeholder="Search a name or number"
+          aria-label="Search a name or number"
+          className="w-full rounded-lg border border-stone-300 bg-white px-3 py-3 text-base outline-none focus:border-amber-700"
+        />
+        <button
+          type="submit"
+          className="rounded-lg bg-amber-700 px-4 py-3 text-base font-semibold text-white"
+        >
+          Find
+        </button>
+      </form>
 
       {failed && (
         <p className="mt-4 rounded-lg bg-red-50 px-3 py-3 text-base text-red-700">
@@ -38,6 +73,26 @@ export default async function DashboardPage() {
         </p>
       )}
 
+      {query ? (
+        <SearchResults query={query} people={found} />
+      ) : (
+        <CityList groups={groups} pending={pending} failed={failed} />
+      )}
+    </main>
+  );
+}
+
+function CityList({
+  groups,
+  pending,
+  failed,
+}: {
+  groups: CityGroup[];
+  pending: number;
+  failed: boolean;
+}) {
+  return (
+    <>
       {pending > 0 && (
         <Link
           href="/dashboard/locations"
@@ -80,6 +135,6 @@ export default async function DashboardPage() {
           </li>
         ))}
       </ul>
-    </main>
+    </>
   );
 }
