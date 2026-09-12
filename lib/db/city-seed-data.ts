@@ -26,4 +26,6 @@ export const CITY_SEEDS: CitySeed[] = [
   { name: "Johor Bahru", region: "", country: "Malaysia", countryCode: "MY" },
 
   { name: "Singapore", region: "", country: "Singapore", countryCode: "SG" },
+
+  { name: "Doha", region: "", country: "Qatar", countryCode: "QA" },
 ];

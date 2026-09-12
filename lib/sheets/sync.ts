@@ -2,8 +2,8 @@ import type { sheets_v4 } from "@googleapis/sheets";
 import { listAllActiveAttendees } from "../db/attendee-list.ts";
 import { sheetSettings, sheetsClient, type SheetSettings } from "./client.ts";
 
-const HEADER = ["Name", "Phone number", "City", "Region", "Country", "Joined"];
-const LAST_COLUMN = "F";
+const HEADER = ["No.", "Name", "Phone number", "City", "Region", "Country", "Joined"];
+const LAST_COLUMN = "G";
 
 /** How long a join is allowed to wait for Google before we give up on it. */
 const QUICK_WAIT_MS = 5000;
@@ -20,7 +20,11 @@ export async function writeListToSheet(): Promise<SyncResult> {
   if (!settings) return { state: "off" };
 
   const people = await listAllActiveAttendees();
-  const rows = people.map((person) => [
+  // The number in the first column is worked out here, not by a sheet
+  // formula. The whole list is written again on every change, so the numbers
+  // are always right, and plain text keeps the "+" on each phone number safe.
+  const rows = people.map((person, index) => [
+    index + 1,
     person.name,
     person.phone,
     person.cityName,

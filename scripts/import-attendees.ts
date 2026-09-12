@@ -98,10 +98,15 @@ async function readRow(
   const phoneRaw = (row[2] ?? "").trim();
   const cityRaw = (row[3] ?? "").trim();
 
-  const { phone, countryCode: phoneCountry } = cleanImportedPhone(phoneRaw);
-  if (!phone) totals.noPhone.push(`${name} (${phoneRaw || "no number"})`);
-
+  // The location column is read first, because it tells us which country the
+  // number belongs to. Some numbers cannot be read correctly without it.
   const match = matchCity(cityRaw, known);
+
+  const { phone, countryCode: phoneCountry } = cleanImportedPhone(
+    phoneRaw,
+    match.countryCode,
+  );
+  if (!phone) totals.noPhone.push(`${name} (${phoneRaw || "no number"})`);
   const countryCode = match.countryCode || phoneCountry || DEFAULT_COUNTRY_CODE;
 
   let cityId: ObjectId | null = null;

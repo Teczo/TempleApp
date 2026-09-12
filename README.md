@@ -128,13 +128,16 @@ npm run import -- --file=./data/attendees.csv
 It prints a short report, like this:
 
 ```
-Rows read: 99
-People added: 50
+Rows read: 101
+People added: 58
 People already there, details refreshed: 0
-Rows skipped because the name was blank: 47
+Rows skipped because the name was blank: 41
 Phone numbers that could not be read: 0
-New locations to check: 1
+New locations to check: 4
   - Malaysia
+  - India
+  - Australia
+  - Qatar
 ```
 
 What the report means:
@@ -152,8 +155,12 @@ What the report means:
 It is safe to run this command again. People are matched on their phone
 number, so nobody gets added twice.
 
-Two people in the old spreadsheet are written down twice with the same phone
-number. The app keeps one of each. So 52 lines become 50 people.
+Two people in the spreadsheet are written down twice with the same phone
+number. The app keeps one of each. So 60 lines become 58 people.
+
+Four lines give a country but no city: Malaysia, India, Australia and Qatar.
+They show up as new locations to check. Open the yellow banner and either
+accept them or join them to a city.
 
 ---
 
@@ -278,6 +285,8 @@ Then go to **Deployments** and click **Redeploy** on the newest one.
 
 - The app rewrites the whole list every time somebody joins, is edited, is
   taken off the list, or when two locations are merged.
+- The first column, **No.**, counts the people: 1, 2, 3 and so on. The app
+  writes those numbers itself, so they are always correct.
 - Do not type into the sheet yourself. Your typing is wiped on the next
   change. The app is the real list.
 - If Google is slow or down, joining still works. The sheet catches up on the

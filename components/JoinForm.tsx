@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import CityBox from "./CityBox";
-import { COUNTRIES, DEFAULT_COUNTRY_CODE, findCountry } from "@/lib/utils/countries";
+import {
+  COMMON_COUNTRIES,
+  OTHER_COUNTRIES,
+  DEFAULT_COUNTRY_CODE,
+  findCountry,
+} from "@/lib/utils/countries";
 
 const FIELD_CLASS =
   "mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-3 text-base outline-none focus:border-amber-700";
@@ -102,11 +107,20 @@ export default function JoinForm() {
           }}
           className={FIELD_CLASS}
         >
-          {COUNTRIES.map((country) => (
-            <option key={country.code} value={country.code}>
-              {country.name}
-            </option>
-          ))}
+          <optgroup label="Most people">
+            {COMMON_COUNTRIES.map((country) => (
+              <option key={country.code} value={country.code}>
+                {country.name}
+              </option>
+            ))}
+          </optgroup>
+          <optgroup label="All countries">
+            {OTHER_COUNTRIES.map((country) => (
+              <option key={country.code} value={country.code}>
+                {country.name}
+              </option>
+            ))}
+          </optgroup>
         </select>
       </div>
 
