@@ -202,6 +202,89 @@ on another branch, the live address stays empty. Check this:
 
 ---
 
+## Step 5 — Switch on the live Google sheet (optional)
+
+The app can write every new person straight into a Google Sheet. The sheet
+fills itself in. Nobody has to download anything.
+
+Skip this step if you do not want it. The app works fine without it.
+
+### 5a. Make the sheet
+
+1. Go to https://sheets.google.com and make a new blank sheet.
+2. Name it, for example "Thiruppugazh attendees".
+3. Look at the web address. It looks like this:
+   `https://docs.google.com/spreadsheets/d/1AbCdEf.../edit`
+4. Copy the long code between `/d/` and `/edit`. That is your sheet code.
+
+### 5b. Make a robot Google account
+
+The app cannot log in as you. It needs its own account, called a service
+account. It is free.
+
+1. Go to https://console.cloud.google.com and sign in.
+2. At the top, click the project box, then **New Project**. Name it anything.
+   Click **Create**, then pick that project.
+3. In the search box at the top, type "Google Sheets API". Open it and click
+   **Enable**.
+4. In the search box, type "Service accounts". Open it.
+5. Click **Create service account**. Give it a name, for example "temple-app".
+   Click **Create and continue**, then **Done**.
+6. You now see an email address ending in `.iam.gserviceaccount.com`.
+   Copy it. This is the robot's email.
+7. Click that account, open the **Keys** tab, then **Add key**, then
+   **Create new key**. Choose **JSON** and click **Create**.
+8. A file downloads. Keep it safe. Never put this file in GitHub.
+
+### 5c. Let the robot into your sheet
+
+1. Open your sheet from step 5a.
+2. Click **Share**.
+3. Paste the robot's email address.
+4. Set it to **Editor**. Turn off "Notify people". Click **Share**.
+
+If you skip this, the app cannot write anything.
+
+### 5d. Tell the app about it
+
+Open the downloaded JSON file in any text editor. You need two values from it:
+`client_email` and `private_key`.
+
+In Vercel, go to **Settings**, then **Environment Variables**, and add:
+
+| Name | Value |
+|---|---|
+| `GOOGLE_SHEET_ID` | the long code from step 5a |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | the `client_email` from the file |
+| `GOOGLE_SERVICE_ACCOUNT_KEY` | the `private_key` from the file, copied whole |
+
+Copy the private key exactly as it appears in the file. It starts with
+`-----BEGIN PRIVATE KEY-----` and ends with `-----END PRIVATE KEY-----`.
+The `\n` marks inside it are fine. Leave them alone.
+
+Then go to **Deployments** and click **Redeploy** on the newest one.
+
+### 5e. Check that it works
+
+1. Log in and open **Settings** on your phone.
+2. You should see a box called "The live Google sheet" with an
+   **Open the sheet** button.
+3. Tap **Update the sheet now**. It should say how many people are on it.
+4. Open the sheet. You should see a tab called **Attendees** with the list.
+5. Add a test person through the join link. They appear in the sheet in a
+   few seconds.
+
+### How the sheet stays right
+
+- The app rewrites the whole list every time somebody joins, is edited, is
+  taken off the list, or when two locations are merged.
+- Do not type into the sheet yourself. Your typing is wiped on the next
+  change. The app is the real list.
+- If Google is slow or down, joining still works. The sheet catches up on the
+  next change, or when you tap **Update the sheet now**.
+
+---
+
 ## The pages
 
 | Page | Address | Who uses it |
@@ -247,6 +330,13 @@ People point their phone camera at it and the form opens.
 You get a file that opens in Excel, with name, phone, city, region, country
 and the date they joined.
 
+### The live Google sheet
+
+If it is switched on (Step 5), the Settings page shows a box called
+"The live Google sheet". Tap **Open the sheet** to see the list in Google.
+The sheet fills itself in. If somebody looks missing, tap
+**Update the sheet now**.
+
 ---
 
 ## What stops junk sign-ups
@@ -289,6 +379,20 @@ Run `npm run seed:cities`. The locations have not been added yet.
 Some older phone browsers do not allow it. Press and hold on the numbers
 on the screen, then choose Copy.
 
+**Settings says the Google sheet is "Not switched on yet."**
+The three Google settings are missing. Go back to Step 5, point 5d, and
+check them in Vercel. Redeploy after adding them.
+
+**The sheet stays empty, or "Update the sheet now" fails.**
+Two usual causes. First, the sheet was never shared with the robot email
+address (Step 5, point 5c). Second, the private key was not copied whole.
+It must start with `-----BEGIN PRIVATE KEY-----` and end with
+`-----END PRIVATE KEY-----`.
+
+**I typed into the Google sheet and my typing disappeared.**
+That is normal. The app rewrites the sheet on every change. Make your
+changes in the app instead. Tap a person's name to edit them.
+
 **The Excel file will not download on my phone.**
 Some phone browsers block a download from a page. Try it on a computer,
 or use your phone's other browser.
@@ -319,6 +423,7 @@ app/api/cities/route.ts      the city names for the join box
 app/api/cities/[id]/route.ts adds a location, or joins two together
 app/api/export/route.ts      makes the Excel file
 app/api/qr/route.ts          makes the picture code
+app/api/sheet/route.ts       updates the Google sheet when asked
 app/dashboard/person/[id]    change or remove one person
 app/dashboard/settings       the link, the picture code and the Excel file
 middleware.ts                sends people to /login if they are not logged in
@@ -328,6 +433,8 @@ lib/db/users.ts              reads the organiser login
 lib/db/cities.ts             reads and writes locations
 lib/db/attendee-list.ts      search, and the rows for the Excel file
 lib/db/rate-limit.ts         counts join tries so nobody can flood the form
+lib/sheets/client.ts         the Google settings and the login for them
+lib/sheets/sync.ts           writes the whole list into the Google sheet
 lib/utils/countries.ts       the country list and dialling codes
 lib/utils/phone.ts           turns a typed number into +61... form
 lib/utils/base-url.ts        works out the join link

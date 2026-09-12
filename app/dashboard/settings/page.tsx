@@ -3,6 +3,8 @@ import Link from "next/link";
 import CopyButton from "@/components/CopyButton";
 import DownloadButton from "@/components/DownloadButton";
 import LogoutButton from "@/components/LogoutButton";
+import SheetSyncButton from "@/components/SheetSyncButton";
+import { sheetLink, sheetSettings } from "@/lib/sheets/client";
 import { joinLink } from "@/lib/utils/base-url";
 
 export const metadata: Metadata = { title: "Settings" };
@@ -10,6 +12,7 @@ export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
   const link = await joinLink();
+  const sheet = sheetSettings();
 
   return (
     <main className="mx-auto max-w-md px-5 py-8">
@@ -60,6 +63,34 @@ export default async function SettingsPage() {
           label="Download attendee list"
           className="mt-3 block w-full rounded-lg bg-amber-700 px-4 py-3 text-center text-base font-semibold text-white"
         />
+      </section>
+
+      <section className="mt-4 rounded-lg bg-white px-4 py-4 shadow-sm">
+        <h2 className="text-base font-semibold">The live Google sheet</h2>
+        {sheet ? (
+          <>
+            <p className="mt-1 text-sm text-stone-600">
+              This sheet fills itself in. Every new person shows up on it within
+              a few seconds.
+            </p>
+            <a
+              href={sheetLink(sheet)}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 block w-full rounded-lg bg-amber-700 px-4 py-3 text-center text-base font-semibold text-white"
+            >
+              Open the sheet
+            </a>
+            <p className="mt-3 text-sm text-stone-600">
+              If somebody is missing, tap the button below.
+            </p>
+            <SheetSyncButton className="mt-2" />
+          </>
+        ) : (
+          <p className="mt-1 text-sm text-stone-600">
+            Not switched on yet.
+          </p>
+        )}
       </section>
 
       <div className="mt-6 text-center">
