@@ -3,8 +3,9 @@
 A small web app for the Thiruppugazh class.
 People join through a link. The organiser sees the list of people who joined.
 
-This is **Phase 3**. It has the join form with country and city boxes,
-a login, and an attendee list grouped by city.
+This is **Phase 4**. It has the join form with country and city boxes,
+a login, an attendee list grouped by city, and a one-time command that
+brings the old spreadsheet of names into the app.
 
 ---
 
@@ -112,6 +113,47 @@ leaves it alone.
 
 ---
 
+## Step 3c — Bring in the old list of names
+
+Do this once, after Step 3b. It reads the spreadsheet in `data/attendees.csv`
+and adds those people to the app.
+
+```bash
+npm run import -- --file=./data/attendees.csv
+```
+
+It prints a short report, like this:
+
+```
+Rows read: 99
+People added: 50
+People already there, details refreshed: 0
+Rows skipped because the name was blank: 47
+Phone numbers that could not be read: 0
+New locations to check: 1
+  - Malaysia
+```
+
+What the report means:
+
+- **Rows read** — every line in the spreadsheet, including empty ones.
+- **People added** — new people now in the app.
+- **People already there** — the same phone number was already saved.
+  Their details were refreshed. No copy was made.
+- **Rows skipped** — lines with no name. The old spreadsheet has 47 of these.
+- **Phone numbers that could not be read** — these people are still added,
+  but with no number. Their names are listed so you can ask them.
+- **New locations to check** — place names the app did not know.
+  Open the yellow banner on the attendee list and sort them out.
+
+It is safe to run this command again. People are matched on their phone
+number, so nobody gets added twice.
+
+Two people in the old spreadsheet are written down twice with the same phone
+number. The app keeps one of each. So 52 lines become 50 people.
+
+---
+
 ## Step 4 — Put the app on the internet
 
 You only need **two** settings to deploy. The third one comes later.
@@ -188,6 +230,11 @@ the command in Step 3. That sets a new password.
 **Logging in says "Could not log in right now."**
 The app cannot reach the database. Check `MONGODB_URI`.
 
+**The import says a name has no number.**
+The old spreadsheet had something the app could not read in that box.
+The person is still saved. Open their city, tap their name, and type the
+number in. (Editing a person comes in Phase 5.)
+
 **The city box shows no suggestions.**
 Run `npm run seed:cities`. The locations have not been added yet.
 
@@ -224,8 +271,13 @@ lib/utils/phone.ts           turns a typed number into +61... form
 lib/auth/session.ts          makes and checks the login cookie
 scripts/seed-user.ts         creates or updates the organiser login
 scripts/seed-cities.ts       adds the starting locations
+scripts/import-attendees.ts  brings in the old spreadsheet
+lib/db/import.ts             saves the people from the spreadsheet
+lib/utils/csv.ts             reads a spreadsheet file
+lib/utils/import-city.ts     matches old place names to the real ones
+lib/utils/import-phone.ts    cleans the old phone numbers
 components/JoinForm.tsx      the form boxes and the Join button
 components/LoginForm.tsx     the email and password boxes
 components/CityBox.tsx       the city box that suggests as you type
-data/attendees.csv           the existing list, used later in Phase 4
+data/attendees.csv           the old list of names
 ```
