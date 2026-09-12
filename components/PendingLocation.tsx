@@ -17,6 +17,7 @@ interface Props {
 export default function PendingLocation({ city, approved }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+  const [busyOption, setBusyOption] = useState("");
   const [choosing, setChoosing] = useState(false);
   const [error, setError] = useState("");
 
@@ -39,6 +40,7 @@ export default function PendingLocation({ city, approved }: Props) {
       setError("Could not save that change. Please check your internet.");
     } finally {
       setBusy(false);
+      setBusyOption("");
     }
   }
 
@@ -81,12 +83,23 @@ export default function PendingLocation({ city, approved }: Props) {
                 <button
                   type="button"
                   disabled={busy}
-                  onClick={() => send({ action: "merge", intoCityId: option.id })}
+                  onClick={() => {
+                    setBusyOption(option.id);
+                    send({ action: "merge", intoCityId: option.id });
+                  }}
                   className="w-full rounded-lg border border-stone-200 px-3 py-3 text-left text-base hover:bg-amber-50 disabled:opacity-60"
                 >
-                  {option.name}
-                  {option.region && (
-                    <span className="ml-2 text-sm text-stone-500">{option.region}</span>
+                  {busyOption === option.id && busy ? (
+                    "Please wait…"
+                  ) : (
+                    <>
+                      {option.name}
+                      {option.region && (
+                        <span className="ml-2 text-sm text-stone-500">
+                          {option.region}
+                        </span>
+                      )}
+                    </>
                   )}
                 </button>
               </li>

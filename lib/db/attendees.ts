@@ -42,19 +42,6 @@ async function attendeesCollection(): Promise<Collection<Attendee>> {
   return db.collection<Attendee>("attendees");
 }
 
-export async function createAttendee(input: NewAttendee): Promise<void> {
-  const now = new Date();
-  const col = await attendeesCollection();
-  await col.insertOne({
-    _id: new ObjectId(),
-    ...input,
-    status: "active",
-    source: "link",
-    createdAt: now,
-    updatedAt: now,
-  });
-}
-
 export async function countActiveAttendees(): Promise<number> {
   const col = await attendeesCollection();
   return col.countDocuments({ status: "active" });
@@ -123,4 +110,70 @@ export async function countAttendeesInCity(cityId: string): Promise<number> {
   if (!ObjectId.isValid(cityId)) return 0;
   const col = await attendeesCollection();
   return col.countDocuments({ status: "active", cityId: new ObjectId(cityId) });
+}
+
+export interface UpsertResult {
+  /** True when this phone number was not in the list before. */
+  created: boolean;
+}
+
+/**
+ * Saves a person from the join link. Somebody who is already in the list
+ * has their details refreshed instead of being added a second time.
+ */
+export async function upsertAttendeeByPhone(
+  input: NewAttendee,
+): Promise<UpsertResult> {
+  const now = new Date();
+  const col = await attendeesCollection();
+  const result = await col.updateOne(
+    { phone: input.phone },
+    {
+      $set: { ...input, status: "active", updatedAt: now },
+      $setOnInsert: {
+        _id: new ObjectId(),
+        source: "link" as AttendeeSource,
+        createdAt: now,
+      },
+    },
+    { upsert: true },
+  );
+  return { created: result.upsertedCount > 0 };
+}
+
+export async function findAttendeeById(id: string): Promise<Attendee | null> {
+  if (!ObjectId.isValid(id)) return null;
+  const col = await attendeesCollection();
+  return col.findOne({ _id: new ObjectId(id) });
+}
+
+export interface AttendeeEdit {
+  name: string;
+  phone: string;
+  phoneRaw: string;
+  countryCode: string;
+  cityId: ObjectId | null;
+  cityRaw: string;
+}
+
+/** Saving a person also puts them back on the list if they were taken off. */
+export async function updateAttendee(id: string, edit: AttendeeEdit): Promise<boolean> {
+  if (!ObjectId.isValid(id)) return false;
+  const col = await attendeesCollection();
+  const result = await col.updateOne(
+    { _id: new ObjectId(id) },
+    { $set: { ...edit, status: "active", updatedAt: new Date() } },
+  );
+  return result.matchedCount === 1;
+}
+
+/** Taking someone off the list keeps their row, so nothing is lost. */
+export async function removeAttendee(id: string): Promise<boolean> {
+  if (!ObjectId.isValid(id)) return false;
+  const col = await attendeesCollection();
+  const result = await col.updateOne(
+    { _id: new ObjectId(id) },
+    { $set: { status: "removed", updatedAt: new Date() } },
+  );
+  return result.matchedCount === 1;
 }

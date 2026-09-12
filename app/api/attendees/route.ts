@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
-import { createAttendee } from "@/lib/db/attendees";
+import { upsertAttendeeByPhone } from "@/lib/db/attendees";
+import { allowJoinAttempt, callerIp } from "@/lib/db/rate-limit";
 import { findApprovedCity, findOrCreatePendingCity } from "@/lib/db/cities";
 import { findCountry } from "@/lib/utils/countries";
 import { looksLikeAPhoneNumber, toE164 } from "@/lib/utils/phone";
 
 const FRIENDLY_SAVE_ERROR = "Could not save. Please try again.";
+const TOO_MANY = "Too many tries. Please wait a little and try again.";
 
 function asString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -20,6 +22,13 @@ export async function POST(request: Request) {
 
   const data = (body ?? {}) as Record<string, unknown>;
   const name = asString(data.name);
+
+  // A hidden box no real person can see. Only automatic form fillers fill it
+  // in. Act as if the save worked, but keep nothing.
+  if (asString(data.website)) {
+    return NextResponse.json({ ok: true, name });
+  }
+
   const phoneRaw = asString(data.phone);
   const cityRaw = asString(data.city);
   const cityId = asString(data.cityId);
@@ -47,13 +56,17 @@ export async function POST(request: Request) {
   }
 
   try {
+    if (!(await allowJoinAttempt(callerIp(request)))) {
+      return NextResponse.json({ error: TOO_MANY }, { status: 429 });
+    }
+
     // A picked city must really belong to the chosen country. Anything else,
     // including typed text, becomes a location for the organiser to check.
     const picked = cityId ? await findApprovedCity(cityId, country.code) : null;
     const city =
       picked ?? (await findOrCreatePendingCity(cityRaw, country.code, country.name));
 
-    await createAttendee({
+    const { created } = await upsertAttendeeByPhone({
       name,
       phone,
       phoneRaw,
@@ -61,17 +74,9 @@ export async function POST(request: Request) {
       cityId: city._id,
       cityRaw,
     });
-  } catch (error) {
-    if (isDuplicatePhone(error)) {
-      return NextResponse.json({ error: "You are already registered." }, { status: 409 });
-    }
+
+    return NextResponse.json({ ok: true, name, alreadyJoined: !created });
+  } catch {
     return NextResponse.json({ error: FRIENDLY_SAVE_ERROR }, { status: 500 });
   }
-
-  return NextResponse.json({ ok: true, name });
-}
-
-function isDuplicatePhone(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error &&
-    (error as { code: unknown }).code === 11000;
 }
