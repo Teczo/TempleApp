@@ -5,15 +5,23 @@ import {
   SESSION_COOKIE,
   SESSION_MAX_AGE,
   createSessionToken,
+  hasSessionSecret,
 } from "@/lib/auth/session";
 
 const WRONG_DETAILS = "Email or password is not correct.";
+const NO_DATABASE = "Could not reach the class list. Please try again.";
+const NOT_SET_UP = "The app is missing a setting, so nobody can log in yet.";
 
 function asString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
 export async function POST(request: Request) {
+  // Checked first. Without it a correct password still could not sign you in.
+  if (!hasSessionSecret()) {
+    return NextResponse.json({ error: NOT_SET_UP }, { status: 500 });
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -33,10 +41,7 @@ export async function POST(request: Request) {
   try {
     user = await findUserByEmail(email);
   } catch {
-    return NextResponse.json(
-      { error: "Could not log in right now. Please try again." },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: NO_DATABASE }, { status: 500 });
   }
 
   // Always run a compare so a missing email takes the same time as a wrong
@@ -48,10 +53,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: WRONG_DETAILS }, { status: 401 });
   }
 
-  const token = await createSessionToken({
-    userId: user._id.toString(),
-    name: user.name,
-  });
+  let token: string;
+  try {
+    token = await createSessionToken({
+      userId: user._id.toString(),
+      name: user.name,
+    });
+  } catch {
+    return NextResponse.json({ error: NOT_SET_UP }, { status: 500 });
+  }
 
   const response = NextResponse.json({ ok: true });
   response.cookies.set(SESSION_COOKIE, token, {
