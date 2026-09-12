@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import JoinForm from "@/components/JoinForm";
 
 export const metadata: Metadata = {
-  title: "Join the Thiruppugazh Class",
+  title: { absolute: "Join the Thiruppugazh Class" },
 };
 
 export default function JoinPage() {

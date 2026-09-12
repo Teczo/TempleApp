@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PersonRow from "./PersonRow";
 import type { AttendeeRow } from "@/lib/db/attendee-list";
 
 interface Props {
@@ -22,17 +23,13 @@ export default function SearchResults({ query, people }: Props) {
 
       <ul className="mt-4 space-y-2">
         {people.map((person) => (
-          <li key={person.id}>
-            <Link
-              href={`/dashboard/person/${person.id}`}
-              className="block rounded-lg bg-white px-4 py-3 shadow-sm"
-            >
-              <p className="text-base font-medium">{person.name}</p>
-              <p className="text-sm text-stone-600">
-                {person.phone || "No phone number"} · {person.cityName}
-              </p>
-            </Link>
-          </li>
+          <PersonRow
+            key={person.id}
+            id={person.id}
+            name={person.name}
+            phone={person.phone}
+            detail={person.cityName}
+          />
         ))}
       </ul>
     </section>

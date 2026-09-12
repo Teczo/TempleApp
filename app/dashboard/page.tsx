@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import CityRow from "@/components/CityRow";
 import LogoutButton from "@/components/LogoutButton";
+import SearchBox from "@/components/SearchBox";
 import SearchResults from "@/components/SearchResults";
 import { countActiveAttendees, groupAttendeesByCity, type CityGroup } from "@/lib/db/attendees";
 import { searchAttendees, type AttendeeRow } from "@/lib/db/attendee-list";
@@ -50,22 +52,7 @@ export default async function DashboardPage({ searchParams }: Props) {
         </div>
       </div>
 
-      <form action="/dashboard" method="get" className="mt-4 flex gap-2">
-        <input
-          type="search"
-          name="q"
-          defaultValue={query}
-          placeholder="Search a name or number"
-          aria-label="Search a name or number"
-          className="w-full rounded-lg border border-stone-300 bg-white px-3 py-3 text-base outline-none focus:border-amber-700"
-        />
-        <button
-          type="submit"
-          className="rounded-lg bg-amber-700 px-4 py-3 text-base font-semibold text-white"
-        >
-          Find
-        </button>
-      </form>
+      <SearchBox query={query} />
 
       {failed && (
         <p className="mt-4 rounded-lg bg-red-50 px-3 py-3 text-base text-red-700">
@@ -108,31 +95,7 @@ function CityList({
 
       <ul className="mt-5 space-y-2">
         {groups.map((group) => (
-          <li key={group.cityId ?? "none"}>
-            {group.cityId ? (
-              <Link
-                href={`/dashboard/city/${group.cityId}`}
-                className="flex items-center justify-between rounded-lg bg-white px-4 py-4 shadow-sm"
-              >
-                <span className="text-base font-medium">
-                  {group.cityName}
-                  {group.status === "pending" && (
-                    <span className="ml-2 text-sm font-normal text-amber-700">
-                      needs checking
-                    </span>
-                  )}
-                </span>
-                <span className="text-base text-stone-600">{group.count}</span>
-              </Link>
-            ) : (
-              <div className="flex items-center justify-between rounded-lg bg-white px-4 py-4 shadow-sm">
-                <span className="text-base font-medium text-stone-500">
-                  {group.cityName}
-                </span>
-                <span className="text-base text-stone-600">{group.count}</span>
-              </div>
-            )}
-          </li>
+          <CityRow key={group.cityId ?? "none"} {...group} />
         ))}
       </ul>
     </>

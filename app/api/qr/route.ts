@@ -29,7 +29,7 @@ export async function GET(request: Request) {
     return new NextResponse(new Uint8Array(png), { headers });
   } catch {
     return NextResponse.json(
-      { error: "Could not make the code right now. Please try again." },
+      { error: "Could not make the picture right now. Please try again." },
       { status: 500 },
     );
   }

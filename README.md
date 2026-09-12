@@ -3,10 +3,12 @@
 A small web app for the Thiruppugazh class.
 People join through a link. The organiser sees the list of people who joined.
 
-This is **Phase 5**. It has the join form, a login, the attendee list
-grouped by city, the one-time command that brings in the old spreadsheet,
-and the organiser's tools: search, edit, remove, copy numbers, the Excel
-file, the join link and the picture code.
+This is the **finished app**. It has the join form, a login, the attendee
+list grouped by city, the one-time command that brings in the old
+spreadsheet, and the organiser's tools: search, edit, remove, copy numbers,
+the Excel file, the join link and the picture code.
+
+Every page is built for a phone screen first.
 
 ---
 
@@ -212,6 +214,9 @@ on another branch, the live address stays empty. Check this:
 | New locations | `/dashboard/locations` | Tap the yellow banner to open it. |
 | Settings | `/dashboard/settings` | Tap **Settings** at the top right. |
 
+Every button says **Please wait…** while it is working, so you know the tap
+went through. Every message is in plain words.
+
 If she opens `/dashboard` without logging in, the app sends her to `/login`.
 Once she logs in, she stays logged in on that phone for 30 days.
 The **Log out** button is at the top right, and also on the Settings page.
@@ -341,5 +346,10 @@ components/PersonForm.tsx    the edit boxes for one person
 components/RemovePerson.tsx  the two-tap "take off the list" button
 components/CopyButton.tsx    copies text to the clipboard
 components/SearchResults.tsx the people found by a search
+components/SearchBox.tsx     the search box and the Find button
+components/CityRow.tsx       one city and its count
+components/PersonRow.tsx     one person's name and number
+components/DownloadButton.tsx the Excel and picture downloads
+app/icon.svg                 the small picture in the browser tab
 data/attendees.csv           the old list of names
 ```

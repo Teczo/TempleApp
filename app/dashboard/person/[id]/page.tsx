@@ -6,11 +6,16 @@ import { findAttendeeById } from "@/lib/db/attendees";
 import { findCityById } from "@/lib/db/cities";
 import { findCountry } from "@/lib/utils/countries";
 
-export const metadata: Metadata = { title: "Edit person" };
 export const dynamic = "force-dynamic";
 
 interface Props {
   params: Promise<{ id: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const person = await findAttendeeById(id).catch(() => null);
+  return { title: person ? person.name : "Person" };
 }
 
 export default async function PersonPage({ params }: Props) {

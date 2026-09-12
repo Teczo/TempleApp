@@ -2,14 +2,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import CopyButton from "@/components/CopyButton";
+import PersonRow from "@/components/PersonRow";
 import { listAttendeesByCity } from "@/lib/db/attendees";
 import { findCityById } from "@/lib/db/cities";
 
-export const metadata: Metadata = { title: "City" };
 export const dynamic = "force-dynamic";
 
 interface Props {
   params: Promise<{ id: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const city = await findCityById(id).catch(() => null);
+  return { title: city ? city.name : "City" };
 }
 
 export default async function CityPage({ params }: Props) {
@@ -49,17 +55,12 @@ export default async function CityPage({ params }: Props) {
 
       <ul className="mt-5 space-y-2">
         {people.map((person) => (
-          <li key={person._id.toString()}>
-            <Link
-              href={`/dashboard/person/${person._id.toString()}`}
-              className="block rounded-lg bg-white px-4 py-3 shadow-sm"
-            >
-              <p className="text-base font-medium">{person.name}</p>
-              <p className="text-sm text-stone-600">
-                {person.phone || "No phone number"}
-              </p>
-            </Link>
-          </li>
+          <PersonRow
+            key={person._id.toString()}
+            id={person._id.toString()}
+            name={person.name}
+            phone={person.phone}
+          />
         ))}
       </ul>
     </main>
