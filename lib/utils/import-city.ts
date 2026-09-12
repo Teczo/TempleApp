@@ -73,8 +73,21 @@ export function matchCity(raw: string, known: KnownCity[]): CityMatch {
   return { name: "", countryCode: country };
 }
 
-/** Finds a country name inside the typed line, for example "Malaysia". */
+/**
+ * Finds a country name inside the typed line, for example "Malaysia".
+ * It matches whole words only. Without that, a short country name could be
+ * found inside a longer word and give the wrong answer.
+ */
 export function countryFromText(cleanedText: string): string {
-  const match = COUNTRIES.find((c) => cleanedText.includes(c.name.toLowerCase()));
+  const match = COUNTRIES.find((c) => hasWholeWords(cleanedText, c.name.toLowerCase()));
   return match ? match.code : "";
+}
+
+function hasWholeWords(text: string, phrase: string): boolean {
+  const pattern = new RegExp(`(^|\\s)${escapeForRegex(phrase)}($|\\s)`);
+  return pattern.test(text);
+}
+
+function escapeForRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

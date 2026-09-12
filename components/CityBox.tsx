@@ -56,11 +56,18 @@ export default function CityBox({ countryCode, value, onChange }: Props) {
     [options],
   );
 
+  const typed = value.trim();
+
   const suggestions = useMemo(() => {
-    const typed = value.trim();
     if (!typed) return options.slice(0, 8);
     return fuse.search(typed, { limit: 8 }).map((hit) => hit.item);
-  }, [value, options, fuse]);
+  }, [typed, options, fuse]);
+
+  // When the typed text is not one of the names on the list, offer to keep it
+  // as it is. Without this the person cannot tell that a new place is allowed.
+  const offerTypedText =
+    typed.length > 1 &&
+    !suggestions.some((city) => city.name.toLowerCase() === typed.toLowerCase());
 
   return (
     <div ref={boxRef} className="relative">
@@ -81,8 +88,27 @@ export default function CityBox({ countryCode, value, onChange }: Props) {
         className={FIELD_CLASS}
       />
 
-      {open && suggestions.length > 0 && (
+      <p className="mt-1 text-sm text-stone-500">
+        Not on the list? Type your city and we will add it.
+      </p>
+
+      {open && (suggestions.length > 0 || offerTypedText) && (
         <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-lg border border-stone-300 bg-white shadow-lg">
+          {offerTypedText && (
+            <li>
+              <button
+                type="button"
+                onClick={() => {
+                  onChange(typed, "");
+                  setOpen(false);
+                }}
+                className="block w-full border-b border-stone-200 px-3 py-3 text-left text-base hover:bg-amber-50"
+              >
+                Use &ldquo;{typed}&rdquo;
+                <span className="ml-2 text-sm text-stone-500">new place</span>
+              </button>
+            </li>
+          )}
           {suggestions.map((city) => (
             <li key={city.id}>
               <button
