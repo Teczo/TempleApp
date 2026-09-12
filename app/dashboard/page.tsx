@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { listActiveAttendees, type Attendee } from "@/lib/db/attendees";
+import LogoutButton from "@/components/LogoutButton";
 
 export const metadata: Metadata = {
   title: "Attendees",
@@ -19,9 +20,12 @@ export default async function DashboardPage() {
 
   return (
     <main className="mx-auto max-w-md px-5 py-8">
-      <h1 className="text-2xl font-semibold">
-        {failed ? "Attendees" : `${people.length} ${people.length === 1 ? "attendee" : "attendees"}`}
-      </h1>
+      <div className="flex items-baseline justify-between gap-3">
+        <h1 className="text-2xl font-semibold">
+          {failed ? "Attendees" : `${people.length} ${people.length === 1 ? "attendee" : "attendees"}`}
+        </h1>
+        <LogoutButton />
+      </div>
 
       {failed && (
         <p className="mt-4 rounded-lg bg-red-50 px-3 py-3 text-base text-red-700">
