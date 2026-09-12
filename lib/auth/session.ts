@@ -1,4 +1,7 @@
-import { SignJWT, jwtVerify } from "jose";
+// Import the two pieces directly. The package's main entry also pulls in
+// encryption code that Vercel's edge runtime warns about, and is unused here.
+import { SignJWT } from "jose/jwt/sign";
+import { jwtVerify } from "jose/jwt/verify";
 
 export const SESSION_COOKIE = "session";
 export const SESSION_DAYS = 30;
