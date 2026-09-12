@@ -3,8 +3,8 @@
 A small web app for the Thiruppugazh class.
 People join through a link. The organiser sees the list of people who joined.
 
-This is **Phase 1**. It has the join form and a plain list of attendees.
-There is no login yet. That comes in Phase 2.
+This is **Phase 2**. It has the join form, a login, and a list of attendees.
+The attendee list is now behind a password.
 
 ---
 
@@ -48,24 +48,53 @@ npm install
 cp .env.example .env.local
 ```
 
-Now open the new file called `.env.local` in a text editor.
-Put your database address from Step 1 inside the quotes after `MONGODB_URI=`.
-Save the file.
+Now open the new file called `.env.local` in a text editor. Fill in two lines:
 
-Then run:
+1. After `MONGODB_URI=`, put your database address from Step 1.
+2. After `JWT_SECRET=`, put a long random line of letters and numbers.
+   Anything about 40 characters long is fine. Nobody needs to remember it.
+   If you change it later, everyone gets logged out.
+
+Save the file. Then make the login by following **Step 3** below.
+
+After that, run:
 
 ```bash
 npm run dev
 ```
 
 Open your browser at http://localhost:3000/join and fill in the form.
-Then open http://localhost:3000/dashboard to see the name you just added.
+Then open http://localhost:3000/login, log in, and you will see the name
+you just added.
 
 To stop the app, press `Ctrl` and `C` in the terminal.
 
 ---
 
-## Step 3 — Put the app on the internet
+## Step 3 — Make the organiser's login
+
+There is no sign-up page. You create the login yourself with one command.
+
+Run this in the terminal, in this folder:
+
+```bash
+npm run seed:user -- --email=her@email.com --password="a good password" --name="Her Name"
+```
+
+Change the three values to the real ones. Keep the quote marks around any
+value that has a space in it.
+
+It should say `Login created for her@email.com.`
+
+To change the password later, run the same command again with a new password.
+The old password stops working straight away.
+
+**Rules:** the password must be at least 8 letters. There is only one login.
+There is no "forgot password" page. If she forgets it, run the command again.
+
+---
+
+## Step 4 — Put the app on the internet
 
 1. Push this folder to a GitHub repository.
 2. Go to https://vercel.com and sign in with GitHub.
@@ -87,11 +116,13 @@ To stop the app, press `Ctrl` and `C` in the terminal.
 
 | Page | Address | Who uses it |
 |---|---|---|
-| Join form | `/join` | Anyone. Share this link. |
-| Attendee list | `/dashboard` | The organiser. **No password yet.** |
+| Join form | `/join` | Anyone. Share this link. No login needed. |
+| Log in | `/login` | The organiser. |
+| Attendee list | `/dashboard` | The organiser, after logging in. |
 
-**Important:** in Phase 1 the attendee list has no password.
-Anyone with the address can see it. A password is added in Phase 2.
+If she opens `/dashboard` without logging in, the app sends her to `/login`.
+Once she logs in, she stays logged in on that phone for 30 days.
+The **Log out** button is at the top of the attendee list.
 
 ---
 
@@ -104,6 +135,13 @@ and that you allowed access from anywhere in Step 1, point 5.
 **The form says "Could not save. Please try again."**
 Same cause as above. Check the database address.
 
+**Logging in says "Email or password is not correct."**
+Check the email and password. If you are not sure, make the login again with
+the command in Step 3. That sets a new password.
+
+**Logging in says "Could not log in right now."**
+The app cannot reach the database. Check `MONGODB_URI`.
+
 **Vercel shows an error after I change a setting.**
 Environment variables only take effect on a new deploy.
 In Vercel, open **Deployments** and click **Redeploy**.
@@ -114,10 +152,18 @@ In Vercel, open **Deployments** and click **Redeploy**.
 
 ```
 app/join/page.tsx            the join form page
+app/login/page.tsx           the log in page
 app/dashboard/page.tsx       the attendee list page
 app/api/attendees/route.ts   saves a new person
+app/api/auth/login/route.ts  checks the password and starts the session
+app/api/auth/logout/route.ts ends the session
+middleware.ts                sends people to /login if they are not logged in
 lib/db/client.ts             connects to the database
 lib/db/attendees.ts          reads and writes attendees
+lib/db/users.ts              reads the organiser login
+lib/auth/session.ts          makes and checks the login cookie
+scripts/seed-user.ts         creates or updates the organiser login
 components/JoinForm.tsx      the form boxes and the Join button
+components/LoginForm.tsx     the email and password boxes
 data/attendees.csv           the existing list, used later in Phase 4
 ```
