@@ -1,5 +1,5 @@
 import { Collection, ObjectId } from "mongodb";
-import { getDb } from "./client";
+import { getDb } from "./client.ts";
 
 export interface User {
   _id: ObjectId;
@@ -9,7 +9,7 @@ export interface User {
   createdAt: Date;
 }
 
-export async function usersCollection(): Promise<Collection<User>> {
+async function usersCollection(): Promise<Collection<User>> {
   const db = await getDb();
   return db.collection<User>("users");
 }

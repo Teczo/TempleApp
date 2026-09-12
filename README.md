@@ -3,8 +3,8 @@
 A small web app for the Thiruppugazh class.
 People join through a link. The organiser sees the list of people who joined.
 
-This is **Phase 2**. It has the join form, a login, and a list of attendees.
-The attendee list is now behind a password.
+This is **Phase 3**. It has the join form with country and city boxes,
+a login, and an attendee list grouped by city.
 
 ---
 
@@ -94,6 +94,24 @@ There is no "forgot password" page. If she forgets it, run the command again.
 
 ---
 
+## Step 3b — Add the starting locations
+
+Run this once:
+
+```bash
+npm run seed:cities
+```
+
+It adds 16 locations: 6 in Australia, 6 in India, 3 in Malaysia, 1 in Singapore.
+It also sets up the database indexes.
+
+It is safe to run again any time. It will not make copies.
+
+If you add a location on the **New locations** page later, this command
+leaves it alone.
+
+---
+
 ## Step 4 — Put the app on the internet
 
 You only need **two** settings to deploy. The third one comes later.
@@ -144,7 +162,9 @@ on another branch, the live address stays empty. Check this:
 |---|---|---|
 | Join form | `/join` | Anyone. Share this link. No login needed. |
 | Log in | `/login` | The organiser. |
-| Attendee list | `/dashboard` | The organiser, after logging in. |
+| City list | `/dashboard` | The organiser, after logging in. |
+| One city | `/dashboard/city/...` | Tap a city name to open it. |
+| New locations | `/dashboard/locations` | Tap the yellow banner to open it. |
 
 If she opens `/dashboard` without logging in, the app sends her to `/login`.
 Once she logs in, she stays logged in on that phone for 30 days.
@@ -168,6 +188,13 @@ the command in Step 3. That sets a new password.
 **Logging in says "Could not log in right now."**
 The app cannot reach the database. Check `MONGODB_URI`.
 
+**The city box shows no suggestions.**
+Run `npm run seed:cities`. The locations have not been added yet.
+
+**A city name looks wrong in the list.**
+Open the yellow banner on the attendee list. Then either add the name, or
+say it is the same as a name you already have. Everyone moves across.
+
 **Vercel shows an error after I change a setting.**
 Environment variables only take effect on a new deploy.
 In Vercel, open **Deployments** and click **Redeploy**.
@@ -179,17 +206,26 @@ In Vercel, open **Deployments** and click **Redeploy**.
 ```
 app/join/page.tsx            the join form page
 app/login/page.tsx           the log in page
-app/dashboard/page.tsx       the attendee list page
+app/dashboard/page.tsx       the city list with counts
+app/dashboard/city/[id]      the people in one city
+app/dashboard/locations      new locations to check
 app/api/attendees/route.ts   saves a new person
 app/api/auth/login/route.ts  checks the password and starts the session
 app/api/auth/logout/route.ts ends the session
+app/api/cities/route.ts      the city names for the join box
+app/api/cities/[id]/route.ts adds a location, or joins two together
 middleware.ts                sends people to /login if they are not logged in
 lib/db/client.ts             connects to the database
 lib/db/attendees.ts          reads and writes attendees
 lib/db/users.ts              reads the organiser login
+lib/db/cities.ts             reads and writes locations
+lib/utils/countries.ts       the country list and dialling codes
+lib/utils/phone.ts           turns a typed number into +61... form
 lib/auth/session.ts          makes and checks the login cookie
 scripts/seed-user.ts         creates or updates the organiser login
+scripts/seed-cities.ts       adds the starting locations
 components/JoinForm.tsx      the form boxes and the Join button
 components/LoginForm.tsx     the email and password boxes
+components/CityBox.tsx       the city box that suggests as you type
 data/attendees.csv           the existing list, used later in Phase 4
 ```
