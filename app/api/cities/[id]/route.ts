@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { currentOrganiser } from "@/lib/auth/require-login";
 import { moveAttendeesToCity } from "@/lib/db/attendees";
 import { approveCity, deleteCity, findCityById } from "@/lib/db/cities";
+import { updateSheetQuietly } from "@/lib/sheets/sync";
 
 const TRY_AGAIN = "Could not save that change. Please try again.";
 
@@ -52,6 +53,9 @@ export async function PATCH(request: Request, context: Context) {
       }
       const moved = await moveAttendeesToCity(id, targetId);
       await deleteCity(id);
+
+      await updateSheetQuietly();
+
       return NextResponse.json({ ok: true, moved, into: target.name });
     }
 

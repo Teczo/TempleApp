@@ -3,6 +3,7 @@ import { currentOrganiser } from "@/lib/auth/require-login";
 import { removeAttendee, updateAttendee } from "@/lib/db/attendees";
 import { findApprovedCity, findOrCreatePendingCity } from "@/lib/db/cities";
 import { findCountry } from "@/lib/utils/countries";
+import { updateSheetQuietly } from "@/lib/sheets/sync";
 import { looksLikeAPhoneNumber, toE164 } from "@/lib/utils/phone";
 
 const TRY_AGAIN = "Could not save that change. Please try again.";
@@ -71,6 +72,9 @@ export async function PATCH(request: Request, context: Context) {
     if (!saved) {
       return NextResponse.json({ error: "That person is no longer on the list." }, { status: 404 });
     }
+
+    await updateSheetQuietly();
+
     return NextResponse.json({ ok: true });
   } catch (error) {
     if (isDuplicatePhone(error)) {
@@ -94,6 +98,9 @@ export async function DELETE(_request: Request, context: Context) {
     if (!done) {
       return NextResponse.json({ error: "That person is no longer on the list." }, { status: 404 });
     }
+
+    await updateSheetQuietly();
+
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json(

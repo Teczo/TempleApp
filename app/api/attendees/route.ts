@@ -3,6 +3,7 @@ import { upsertAttendeeByPhone } from "@/lib/db/attendees";
 import { allowJoinAttempt, callerIp } from "@/lib/db/rate-limit";
 import { findApprovedCity, findOrCreatePendingCity } from "@/lib/db/cities";
 import { findCountry } from "@/lib/utils/countries";
+import { updateSheetQuietly } from "@/lib/sheets/sync";
 import { looksLikeAPhoneNumber, toE164 } from "@/lib/utils/phone";
 
 const FRIENDLY_SAVE_ERROR = "Could not save. Please try again.";
@@ -74,6 +75,8 @@ export async function POST(request: Request) {
       cityId: city._id,
       cityRaw,
     });
+
+    await updateSheetQuietly();
 
     return NextResponse.json({ ok: true, name, alreadyJoined: !created });
   } catch {
